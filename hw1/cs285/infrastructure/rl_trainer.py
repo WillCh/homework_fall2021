@@ -4,6 +4,7 @@ import time
 
 import gym
 import torch
+import pickle
 
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.infrastructure.logger import Logger
@@ -61,7 +62,7 @@ class RL_Trainer(object):
         if 'model' in dir(self.env):
             self.fps = 1/self.env.model.opt.timestep
         else:
-            self.fps = self.env.env.metadata['video.frames_per_second']
+            self.fps = self.epicklenv.env.metadata['video.frames_per_second']
 
         #############
         ## AGENT
@@ -161,12 +162,16 @@ class RL_Trainer(object):
                 # ``` return loaded_paths, 0, None ```
 
                 # (2) collect `self.params['batch_size']` transitions
+        if itr == 0:
+            with open(load_initial_expertdata, "rb") as input_file:
+                return pickle.load(input_file), 0, None
 
         # TODO collect `batch_size` samples to be used for training
         # HINT1: use sample_trajectories from utils
         # HINT2: you want each of these collected rollouts to be of length self.params['ep_len']
         print("\nCollecting data to be used for training...")
-        paths, envsteps_this_batch = TODO
+        paths, envsteps_this_batch = utils.sample_trajectories(
+            self.env, collect_policy, batch_size, max_path_length=MAX_VIDEO_LEN)
 
         # collect more rollouts with the same policy, to be saved as videos in tensorboard
         # note: here, we collect MAX_NVIDEO rollouts, each of length MAX_VIDEO_LEN
