@@ -50,6 +50,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             self.logstd = None
             self.optimizer = optim.Adam(self.logits_na.parameters(),
                                         self.learning_rate)
+            self.loss_fn = nn.CrossEntropyLoss()
         else:
             self.logits_na = None
             self.mean_net = ptu.build_mlp(
@@ -66,6 +67,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
                 itertools.chain([self.logstd], self.mean_net.parameters()),
                 self.learning_rate
             )
+            self.loss_fn = nn.MSELoss()
 
     ##################################
 
@@ -81,11 +83,27 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs[None]
 
         # TODO return the action that the policy prescribes
-        raise NotImplementedError
+        observation = ptu.from_numpy(observation.astype(np.float32))
+        if self.discrete:
+            logit = self(observation)
+            p = torch.nn.functional.softmax(logit)
+            p = ptu.to_numpy(p)
+            p = p / np.sum(p, axis=0)
+            return np.random.choice(self.ac_dim, size=1, p=p)
+        else:
+            return ptu.to_numpy(self(observation))
+        # raise NotImplementedError
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
-        raise NotImplementedError
+        observations = ptu.from_numpy(observations.astype(np.float32))
+        actions = ptu.from_numpy(actions.astype(np.int32))
+        pred = self(observations)
+        loss = self.loss_fn(pred, actions)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        # raise NotImplementedError
 
     # This function defines the forward pass of the network.
     # You can return anything you want, but you should be able to differentiate
@@ -93,7 +111,11 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
-        raise NotImplementedError
+        if self.discrete:
+            return self.logits_na(observation)
+        else:
+            return self.mean_net(observation)
+        # raise NotImplementedError
 
 
 #####################################################
@@ -109,7 +131,10 @@ class MLPPolicySL(MLPPolicy):
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
-        loss = TODO
+        MLPPolicy.update(self, observations, actions)
+        observations = ptu.from_numpy(observations.astype(np.float32))
+        actions = ptu.from_numpy(actions.astype(np.float32))
+        loss = self.loss(self(observations), actions)
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),

@@ -62,7 +62,8 @@ class RL_Trainer(object):
         if 'model' in dir(self.env):
             self.fps = 1/self.env.model.opt.timestep
         else:
-            self.fps = self.epicklenv.env.metadata['video.frames_per_second']
+            # self.fps = self.epicklenv.env.metadata['video.frames_per_second']
+            self.fps = self.env.metadata['video.frames_per_second']
 
         #############
         ## AGENT
@@ -128,6 +129,8 @@ class RL_Trainer(object):
 
                 # perform logging
                 print('\nBeginning logging procedure...')
+                print('log video ' + str(self.log_video))
+                print(train_video_paths)
                 self.perform_logging(
                     itr, paths, eval_policy, train_video_paths, training_logs)
 
@@ -176,6 +179,7 @@ class RL_Trainer(object):
         # collect more rollouts with the same policy, to be saved as videos in tensorboard
         # note: here, we collect MAX_NVIDEO rollouts, each of length MAX_VIDEO_LEN
         train_video_paths = None
+        print('here log video is : ' + self.log_video)
         if self.log_video:
             print('\nCollecting train rollouts to be used for saving videos...')
             ## TODO look in utils and implement sample_n_trajectories
@@ -225,6 +229,7 @@ class RL_Trainer(object):
         eval_paths, eval_envsteps_this_batch = utils.sample_trajectories(self.env, eval_policy, self.params['eval_batch_size'], self.params['ep_len'])
 
         # save eval rollouts as videos in tensorboard event file
+        print('the train video path is ' + train_video_paths)
         if self.log_video and train_video_paths != None:
             print('\nCollecting video rollouts eval')
             eval_video_paths = utils.sample_n_trajectories(self.env, eval_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
