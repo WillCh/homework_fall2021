@@ -38,6 +38,10 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         self.training = training
         self.nn_baseline = nn_baseline
 
+        print('build mlppolicy agent with ac dim: ' + str(ac_dim)
+         + ', ob dim: ' + str(ob_dim) + ', layers: ' + str(n_layers)
+         + ', discretize: ' + str(discrete) + ', lr: ' + str(learning_rate))
+
         if self.discrete:
             self.logits_na = ptu.build_mlp(
                 input_size=self.ob_dim,
@@ -63,6 +67,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
                 torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
             )
             self.logstd.to(ptu.device)
+            # Here we use the itertools.chain to combine to lists to one param list.
             self.optimizer = optim.Adam(
                 itertools.chain([self.logstd], self.mean_net.parameters()),
                 self.learning_rate
@@ -135,6 +140,8 @@ class MLPPolicySL(MLPPolicy):
         observations = ptu.from_numpy(observations.astype(np.float32))
         actions = ptu.from_numpy(actions.astype(np.float32))
         loss = self.loss(self(observations), actions)
+        print('the loss is ')
+        print(ptu.to_numpy(loss))
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),

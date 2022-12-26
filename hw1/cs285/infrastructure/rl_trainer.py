@@ -192,10 +192,12 @@ class RL_Trainer(object):
         print('\nTraining agent using sampled data from replay buffer...')
         all_logs = []
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
-
+            print('\nTraining agent using sampled data from replay buffer... at step ' + str(train_step))
             # TODO sample some data from the data buffer
             # HINT1: use the agent's sample function
             # HINT2: how much data = self.params['train_batch_size']
+            # The agent calls the replay buffer to get the such paths. The replay buffer was updated in the
+            # line 122 run_training_loop. 
             ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample(
                 self.params['train_batch_size'])
             # ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = TODO
@@ -229,7 +231,7 @@ class RL_Trainer(object):
         eval_paths, eval_envsteps_this_batch = utils.sample_trajectories(self.env, eval_policy, self.params['eval_batch_size'], self.params['ep_len'])
 
         # save eval rollouts as videos in tensorboard event file
-        print('the train video path is ' + train_video_paths)
+        # print('the train video path is ' + train_video_paths)
         if self.log_video and train_video_paths != None:
             print('\nCollecting video rollouts eval')
             eval_video_paths = utils.sample_n_trajectories(self.env, eval_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
