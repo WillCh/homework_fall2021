@@ -89,8 +89,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
         # TODO return the action that the policy prescribes
         observation = ptu.from_numpy(observation.astype(np.float32))
-        action_distribution = self.forward(observation)
-        return ptu.to_numpy(action_distribution.sample())
+        pred_action = self.forward(observation)
+        return ptu.to_numpy(pred_action)
         # raise NotImplementedError
 
     # update/train this policy
@@ -104,12 +104,15 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
         if self.discrete:
-            return distributions.Categorical(logits=self.logits_na(observation))
+            # return distributions.Categorical(logits=self.logits_na(observation))
+            return self.logits_na(observation)
+        
         else:
-            return distributions.Normal(
-                self.mean_net(observation),
-                torch.exp(self.logstd)[None],
-            )
+            # return distributions.Normal(
+            #     self.mean_net(observation),
+            #     torch.exp(self.logstd)[None],
+            # )
+            return self.mean_net(observation)
         # raise NotImplementedError
 
 
@@ -129,9 +132,9 @@ class MLPPolicySL(MLPPolicy):
         self.optimizer.zero_grad()
         observations = ptu.from_numpy(observations.astype(np.float32))
         actions = ptu.from_numpy(actions.astype(np.float32))
-        action_distribution = self(observations)
+        pred_actions = self.forward(observations)
         # Loss is proportional to the negative log-likelihood.
-        loss = -action_distribution.log_prob(actions).mean()
+        loss = self.loss.forward(pred_actions, actions)
         loss.backward()
         self.optimizer.step()
         # print('the loss is ')

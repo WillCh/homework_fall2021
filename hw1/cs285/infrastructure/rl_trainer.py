@@ -15,7 +15,7 @@ from cs285.infrastructure.utils import Path
 from cs285.policies.base_policy import BasePolicy
 
 # how many rollouts to save as videos to tensorboard
-MAX_NVIDEO = 10
+MAX_NVIDEO = 4
 MAX_VIDEO_LEN = 40  # we overwrite this in the code below
 
 
@@ -228,9 +228,15 @@ class RL_Trainer(object):
         # HINT: query the policy (using the get_action function) with paths[i]["observation"]
         # and replace paths[i]["action"] with these expert labels
         for path in paths:
-            for t, obs in enumerate(path['observation']):
-                updated_action = expert_policy.get_action(obs)
-                path['action'][t] = updated_action
+            # note the path['observation'] has shape [num of paths, obs dimension], thus, we can treat them
+            # as a batch query to expert_policy which the 1st dimension is the batch size.
+            # print('shape of obs')
+            # print(path['observation'].shape)
+            # for t, obs in enumerate(path['observation']):
+            #     print(obs.shape)
+            #     updated_action = expert_policy.get_action(obs)
+            #     path['action'][t] = updated_action
+            path['action'] = expert_policy.get_action(path['observation'])
         return paths
 
     ####################################
