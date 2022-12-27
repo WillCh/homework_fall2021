@@ -1,0 +1,17 @@
+run dagger on humanoid task
+python cs285/scripts/run_hw1.py --expert_policy_file cs285/policies/experts/Humanoid.pkl --env_name Humanoid-v2 --exp_name humanoid --n_iter 100  --expert_data cs285/expert_data/expert_data_Humanoid-v2.pkl  --n_layers 1 --learning_rate 0.01 --ep_len 1000  --eval_batch_size 10000 --num_agent_train_steps_per_iter 1000 --do_dagger --video_log_freq 5
+
+just bc:
+python cs285/scripts/run_hw1.py --expert_policy_file cs285/policies/experts/Humanoid.pkl --env_name Humanoid-v2 --exp_name humanoid --n_iter 1  --expert_data cs285/expert_data/expert_data_Humanoid-v2.pkl  --n_layers 4 --learning_rate 0.01 --ep_len 1000  --eval_batch_size 10000 --num_agent_train_steps_per_iter 1000
+
+
+ant task just bc:
+
+python cs285/scripts/run_hw1.py --expert_policy_file cs285/policies/experts/Ant.pkl --env_name Ant-v2 --exp_name bc_ant --n_iter 1  --expert_data cs285/expert_data/expert_data_Ant-v2.pkl  --n_layers 1 --learning_rate 0.01 --ep_len 1000  --eval_batch_size 10000 --num_agent_train_steps_per_iter 1000 --video_log_freq -1
+ant task dagger:
+
+python cs285/scripts/run_hw1.py --expert_policy_file cs285/policies/experts/Ant.pkl --env_name Ant-v2 --exp_name dagger_ant --n_iter 10 --do_dagger --expert_data cs285/expert_data/expert_data_Ant-v2.pkl --video_log_freq -1
+
+
+summary
+the nn output deterministic policy is better than that of stotistics. possible regularation is needed for the model. 
